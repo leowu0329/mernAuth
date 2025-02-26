@@ -10,12 +10,14 @@ function Navbar() {
   if (!user) return null;
 
   const handleLogout = async () => {
-    try {
-      await logout();
-      toast.success('登出成功');
-      navigate('/login');
-    } catch (error) {
-      toast.error('登出失敗');
+    if (window.confirm('確定要登出嗎？')) {
+      try {
+        await logout();
+        toast.success('登出成功');
+        navigate('/login');
+      } catch (error) {
+        toast.error('登出失敗');
+      }
     }
   };
 

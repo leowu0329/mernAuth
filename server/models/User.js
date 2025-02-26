@@ -28,6 +28,17 @@ const userSchema = new mongoose.Schema(
     resetPasswordExpires: Date,
     verificationCode: String,
     verificationCodeExpires: Date,
+    birthday: {
+      type: Date,
+    },
+    address: {
+      type: String,
+    },
+    idNumber: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
   },
   {
     timestamps: true,
@@ -52,4 +63,5 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-export default mongoose.model('User', userSchema);
+const User = mongoose.model('User', userSchema);
+export default User;

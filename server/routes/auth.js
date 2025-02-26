@@ -210,11 +210,21 @@ router.put('/profile', protect, async (req, res) => {
     }
 
     // 只允許更新特定欄位
-    const { name } = req.body;
+    const { name, birthday, address, idNumber } = req.body;
 
-    if (name) {
-      user.name = name;
+    // 如果要更新身分證字號，先檢查是否已被使用
+    if (idNumber && idNumber !== user.idNumber) {
+      const existingUser = await User.findOne({ idNumber });
+      if (existingUser) {
+        return res.status(400).json({ message: '此身分證字號已被使用' });
+      }
     }
+
+    // 更新欄位
+    if (name) user.name = name;
+    if (birthday) user.birthday = birthday;
+    if (address) user.address = address;
+    if (idNumber) user.idNumber = idNumber;
 
     await user.save();
 
@@ -224,6 +234,9 @@ router.put('/profile', protect, async (req, res) => {
         name: user.name,
         email: user.email,
         verified: user.verified,
+        birthday: user.birthday,
+        address: user.address,
+        idNumber: user.idNumber,
       },
     });
   } catch (error) {
