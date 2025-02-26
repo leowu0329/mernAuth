@@ -77,9 +77,20 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ message: '信箱或密碼錯誤' });
     }
 
+    // 添加調試信息
+    console.log('Creating JWT with secret:', process.env.JWT_SECRET);
+
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: '7d',
     });
+
+    // 驗證生成的 token
+    try {
+      jwt.verify(token, process.env.JWT_SECRET);
+      console.log('Token verification successful');
+    } catch (error) {
+      console.error('Token verification failed:', error);
+    }
 
     res.cookie('token', token, {
       httpOnly: true,
@@ -97,6 +108,7 @@ router.post('/login', async (req, res) => {
       },
     });
   } catch (error) {
+    console.error('Login error:', error);
     res.status(500).json({ message: '登入失敗' });
   }
 });

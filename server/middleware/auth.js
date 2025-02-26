@@ -10,6 +10,9 @@ export const protect = async (req, res, next) => {
       return res.status(401).json({ message: '請先登入' });
     }
 
+    console.log('JWT_SECRET:', process.env.JWT_SECRET);
+    console.log('Token:', token);
+
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       const user = await User.findById(decoded.id).select('-password');
@@ -20,9 +23,9 @@ export const protect = async (req, res, next) => {
 
       req.user = user;
       next();
-    } catch (jwtError) {
-      console.error('JWT verification error:', jwtError);
-      return res.status(401).json({ message: 'Token 無效或已過期' });
+    } catch (error) {
+      console.error('JWT verification error:', error);
+      return res.status(401).json({ message: '認證已過期，請重新登入' });
     }
   } catch (error) {
     console.error('Auth middleware error:', error);

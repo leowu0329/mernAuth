@@ -13,15 +13,23 @@ export const AuthProvider = ({ children }) => {
 
   const checkAuthStatus = async () => {
     try {
-      const response = await axios.get('/api/auth/check-auth', {
-        withCredentials: true,
-      });
-      setUser(response.data.user);
+      // Only check auth status if we have a token in cookies
+      const response = await axios.get(
+        'http://localhost:5000/api/auth/check-auth',
+        {
+          withCredentials: true,
+        },
+      );
+      if (response.data?.user) {
+        setUser(response.data.user);
+      }
     } catch (error) {
-      if (error.response?.status !== 401) {
+      // 401 Unauthorized is expected when not logged in
+      if (error.response?.status === 401) {
+        setUser(null);
+      } else {
         console.error('檢查認證狀態時發生錯誤:', error);
       }
-      setUser(null);
     } finally {
       setLoading(false);
     }
@@ -29,7 +37,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     const response = await axios.post(
-      '/api/auth/login',
+      'http://localhost:5000/api/auth/login',
       { email, password },
       { withCredentials: true },
     );
@@ -43,28 +51,41 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = async (name, email, password) => {
-    const response = await axios.post('/api/auth/register', {
-      name,
-      email,
-      password,
-    });
+    const response = await axios.post(
+      'http://localhost:5000/api/auth/register',
+      {
+        name,
+        email,
+        password,
+      },
+    );
     return response.data;
   };
 
   const logout = async () => {
-    await axios.post('/api/auth/logout', {}, { withCredentials: true });
+    await axios.post(
+      'http://localhost:5000/api/auth/logout',
+      {},
+      { withCredentials: true },
+    );
     setUser(null);
   };
 
   const forgotPassword = async (email) => {
-    const response = await axios.post('/api/auth/forgot-password', { email });
+    const response = await axios.post(
+      'http://localhost:5000/api/auth/forgot-password',
+      { email },
+    );
     return response.data;
   };
 
   const resetPassword = async (token, password) => {
-    const response = await axios.post(`/api/auth/reset-password/${token}`, {
-      password,
-    });
+    const response = await axios.post(
+      `http://localhost:5000/api/auth/reset-password/${token}`,
+      {
+        password,
+      },
+    );
     return response.data;
   };
 
