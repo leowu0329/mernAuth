@@ -1,11 +1,1 @@
 @import 'tailwindcss';
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-@layer base {
-  html {
-    font-family: 'Noto Sans TC', 'Roboto', system-ui, sans-serif;
-  }
-}

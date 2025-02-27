@@ -1,19 +1,26 @@
+// 引入必要的 React Hooks 和 axios
 import { createContext, useState, useContext, useEffect } from 'react';
 import axios from 'axios';
 
+// 創建身份驗證 Context
 const AuthContext = createContext();
 
+// 身份驗證 Provider 組件
 export const AuthProvider = ({ children }) => {
+  // 用戶狀態
   const [user, setUser] = useState(null);
+  // 載入狀態
   const [loading, setLoading] = useState(true);
 
+  // 組件掛載時檢查身份驗證狀態
   useEffect(() => {
     checkAuthStatus();
   }, []);
 
+  // 檢查身份驗證狀態
   const checkAuthStatus = async () => {
     try {
-      // Only check auth status if we have a token in cookies
+      // 只在有 token 的情況下檢查身份驗證狀態
       const response = await axios.get(
         'http://localhost:5000/api/auth/check-auth',
         {
@@ -24,7 +31,7 @@ export const AuthProvider = ({ children }) => {
         setUser(response.data.user);
       }
     } catch (error) {
-      // 401 Unauthorized is expected when not logged in
+      // 401 未授權是預期的未登入狀態
       if (error.response?.status === 401) {
         setUser(null);
       } else {
@@ -35,6 +42,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // 登入函數
   const login = async (email, password) => {
     const response = await axios.post(
       'http://localhost:5000/api/auth/login',
@@ -50,6 +58,7 @@ export const AuthProvider = ({ children }) => {
     return response.data;
   };
 
+  // 註冊函數
   const register = async (name, email, password) => {
     const response = await axios.post(
       'http://localhost:5000/api/auth/register',
@@ -62,6 +71,7 @@ export const AuthProvider = ({ children }) => {
     return response.data;
   };
 
+  // 登出函數
   const logout = async () => {
     await axios.post(
       'http://localhost:5000/api/auth/logout',
@@ -71,6 +81,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  // 忘記密碼函數
   const forgotPassword = async (email) => {
     const response = await axios.post(
       'http://localhost:5000/api/auth/forgot-password',
@@ -79,6 +90,7 @@ export const AuthProvider = ({ children }) => {
     return response.data;
   };
 
+  // 重設密碼函數
   const resetPassword = async (token, password) => {
     const response = await axios.post(
       `http://localhost:5000/api/auth/reset-password/${token}`,
@@ -89,6 +101,7 @@ export const AuthProvider = ({ children }) => {
     return response.data;
   };
 
+  // 提供 Context 值給子組件
   return (
     <AuthContext.Provider
       value={{
@@ -107,4 +120,5 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
+// 自定義 Hook 用於獲取 Auth Context
 export const useAuth = () => useContext(AuthContext);
