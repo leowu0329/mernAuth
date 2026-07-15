@@ -52,12 +52,33 @@ router.delete('/:id', auth, async (req, res) => {
   }
 });
 
+// 批次匯入作業員
+// routes/operator.js 部分修改
 router.post('/import', auth, async (req, res) => {
   try {
-    await Operator.insertMany(req.body);
+    if (!Array.isArray(req.body)) {
+      return res.status(400).json({ msg: '資料格式錯誤，必須為陣列' });
+    }
+
+    const operations = req.body.map(item => {
+      const { _id, __v, createdAt, updatedAt, operator_id, ...rest } = item; // 同步排除 operator_id
+      
+      return {
+        updateOne: {
+          filter: { name: rest.name }, // 改以姓名定位
+          update: { $set: rest },
+          upsert: true
+        }
+      };
+    });
+
+    if (operations.length > 0) {
+      await Operator.bulkWrite(operations);
+    }
     res.json({ msg: '匯入成功' });
   } catch (err) {
-    res.status(500).json({ msg: '匯入失敗' });
+    console.error('Operator Import Error:', err);
+    res.status(500).json({ msg: `匯入失敗: ${err.message}` });
   }
 });
 
