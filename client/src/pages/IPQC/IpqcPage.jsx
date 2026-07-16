@@ -160,9 +160,16 @@ const IpqcPage = () => {
   };
 
   // 匯入 Excel (主表單)
+  // 匯入 Excel (主表單)
   const handleImport = (e) => {
     const file = e.target.files[0];
-    if (!file) return;
+    if (!file) {
+      console.warn("⚠️ [前端] 未偵測到選擇檔案");
+      return;
+    }
+    
+    console.log("📁 [前端] 1. 開始處理檔案:", file.name, `大小: ${(file.size / 1024).toFixed(2)} KB`);
+
     const reader = new FileReader();
     reader.onload = async (evt) => {
       try {
@@ -171,14 +178,30 @@ const IpqcPage = () => {
         const wsname = wb.SheetNames[0];
         const ws = wb.Sheets[wsname];
         const data = XLSX.utils.sheet_to_json(ws);
-        await request('/ipqc/import', {
+
+        // 🔍 【前端日誌 A】: 檢查解析出來的陣列長度與資料格式
+        console.log("📊 [前端] 2. Excel 解析成功，資料長度:", data.length);
+        console.log("📊 [前端] 3. 解析出的第一筆資料預覽:", data[0]);
+        console.log("📊 [前端] 4. 資料是否為陣列:", Array.isArray(data));
+
+        console.log("🚀 [前端] 5. 準備將資料發送至後端...");
+        const res = await request('/ipqc/import', {
           method: 'POST',
           body: JSON.stringify(data)
         });
+
+        console.log("✅ [前端] 6. 後端回傳成功訊息:", res);
         setModal({ show: true, title: '成功', message: 'Excel 匯入完成！' });
         fetchIpqcList();
       } catch (err) {
+        // 🔍 【前端日誌 B】: 捕捉錯誤並印出詳細堆疊與內容
+        console.error("❌ [前端] 7. 匯入過程中斷，錯誤詳情:");
+        console.error("- 錯誤訊息:", err.message);
+        console.error("- 完整 Error 物件:", err);
         setModal({ show: true, title: '匯入失敗', message: err.message });
+      } finally {
+        // 重設 input 的值，確保同一個檔案可以重複選取測試
+        e.target.value = '';
       }
     };
     reader.readAsBinaryString(file);

@@ -50,13 +50,26 @@ router.post('/', auth, async (req, res) => {
 });
 
 router.post('/import', auth, async (req, res) => {
+  // 🔍 【後端日誌 C】: 檢查後端是否成功解析 JSON 陣列
+  console.log("📥 [後端] 1. 收到 /import 請求");
+  console.log("📥 [後端] 2. req.body 類型:", typeof req.body);
+  console.log("📥 [後端] 3. req.body 是否為陣列:", Array.isArray(req.body));
+  console.log("📥 [後端] 4. 接收到的資料內容 (前一筆):", req.body ? req.body[0] : "無資料");
+
   try {
     const records = req.body; // 陣列格式
-    if (!Array.isArray(records)) return res.status(400).json({ msg: '資料格式不正確' });
+    if (!Array.isArray(records)) {
+      console.warn("⚠️ [後端] 接收到的資料格式非陣列，退回請求");
+      return res.status(400).json({ msg: '資料格式不正確' });
+    }
+
     const saved = await Ipqc.insertMany(records);
+    console.log(`✅ [後端] 5. 成功寫入資料庫 ${saved.length} 筆`);
     res.json({ msg: `成功匯入 ${saved.length} 筆資料` });
   } catch (err) {
-    res.status(500).json({ msg: '匯入失敗' });
+    // 🔍 【後端日誌 D】: 檢查資料庫寫入失敗的具體原因 (欄位驗證錯誤等)
+    console.error("❌ [後端] 6. 匯入資料庫失敗，原因:", err);
+    res.status(500).json({ msg: '匯入失敗: ' + err.message });
   }
 });
 
